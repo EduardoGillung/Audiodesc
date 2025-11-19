@@ -7,7 +7,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           <div>
-            <h2 className="text-base font-extrabold text-yellow-400 font-[family-name:var(--font-kufam)]">AudioDesc</h2>
+            <h2 className="text-base font-extrabold text-yellow-400 font-[family-name:var(--font-kufam)]">
+                Audiodesc</h2>
             <p className="text-xs text-zinc-500 mt-1.5">
               Gerador de transcrições e descrições de áudio.
             </p>
