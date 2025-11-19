@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="w-full border-t border-zinc-800/50 bg-black">
+    <footer className="w-full border-t border-zinc-800/50 bg-transparent">
       <div className="mx-auto max-w-9xl px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
@@ -10,7 +10,7 @@ export default function Footer() {
             <h2 className="text-base font-extrabold text-yellow-400 font-[family-name:var(--font-kufam)]">
                 Audiodesc</h2>
             <p className="text-xs text-zinc-500 mt-1.5">
-              Gerador de transcrições e descrições de áudio.
+              Transcritor de áudio para mensagens de texto.
             </p>
           </div>
 
@@ -21,7 +21,7 @@ export default function Footer() {
                 <Link href="/" className="text-zinc-500 hover:text-zinc-300 transition-colors">Início</Link>
               </li>
               <li>
-                <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-300 transition-colors">Dashboard</Link>
+                <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-300 transition-colors">Perfil</Link>
               </li>
             </ul>
           </div>
@@ -29,9 +29,6 @@ export default function Footer() {
           <div>
             <h3 className="text-xs font-medium mb-3 text-zinc-400">Suporte</h3>
             <ul className="space-y-1.5 text-xs">
-              <li>
-                <Link href="/faq" className="text-zinc-500 hover:text-zinc-300 transition-colors">FAQ</Link>
-              </li>
               <li>
                 <Link href="/contato" className="text-zinc-500 hover:text-zinc-300 transition-colors">Contato</Link>
               </li>
