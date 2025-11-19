@@ -19,6 +19,11 @@ const kufam = Kufam({
 export const metadata: Metadata = {
   title: "Audiodesc",
   description: "Conversor de Áudio para texto",
+  icons: {
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

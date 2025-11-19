@@ -16,7 +16,7 @@ export default function Dashboard() {
       <div className="max-w-6xl mx-auto">
         <div className="space-y-4">
           
-          <div>
+          <div className="bg-zinc-900/50 p-6 rounded-md border border-zinc-800/50">
             <h2 className="text-base mb-2 text-yellow-400">Conversor de Áudio para texto.</h2>
             <div className="flex gap-2">
               <div className="relative flex-1">
@@ -74,7 +74,19 @@ export default function Dashboard() {
                 className="w-full h-80 bg-transparent border-none resize-none focus:outline-none text-sm text-zinc-500"
                 placeholder="A descrição aparecerá aqui..."
               />
-              <div className="mt-2 flex justify-end">
+              <div className="mt-2 flex justify-end gap-2">
+                <button className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white shadow-sm hover:shadow-md">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Ticket de suporte
+                </button>
+                <button className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white shadow-sm hover:shadow-md">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                  Listar tarefas
+                </button>
                 <button className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white shadow-sm hover:shadow-md">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
