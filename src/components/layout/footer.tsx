@@ -3,13 +3,13 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <footer className="w-full border-t border-zinc-800/50 bg-black">
-      <div className="mx-auto max-w-6xl px-4 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           <div>
             <h2 className="text-base font-extrabold text-yellow-400 font-[family-name:var(--font-kufam)]">AudioDesc</h2>
             <p className="text-xs text-zinc-500 mt-1.5">
-              Geração automática de transcrições e descrições de áudio.
+              Gerador de transcrições e descrições de áudio.
             </p>
           </div>
 
@@ -52,7 +52,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-zinc-800/50 mt-6 pt-4 text-center text-xs text-zinc-600">
-          © {new Date().getFullYear()} AudioDesc — Todos os direitos reservados.
+          © {new Date().getFullYear()} Audiodesc — Todos os direitos reservados.
         </div>
       </div>
     </footer>
