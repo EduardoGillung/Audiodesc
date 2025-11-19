@@ -39,7 +39,7 @@ export default function Dashboard() {
               </button>
               <button className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-3 py-2 rounded-md transition-all duration-300 hover:scale-105 flex items-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4m14-7l-5-5m0 0L7 8m5-5v12" />
                 </svg>
                 <span className="text-sm">Arquivo</span>
               </button>
