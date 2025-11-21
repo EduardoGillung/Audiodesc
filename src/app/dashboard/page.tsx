@@ -1,14 +1,61 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 export default function Dashboard() {
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [response, setResponse] = useState("");
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleConvert = () => {
-    console.log("Convertendo:", url);
+  const handleConvertUrl = async () => {
+    if (!url) return;
+    
+    setLoading(true);
+    try {
+      const res = await fetch("/api/transcribe/url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+
+      const data = await res.json();
+      if (data.text) {
+        setDescription(data.text);
+        setTitle("Transcrição de URL");
+      }
+    } catch (error) {
+      console.error("Erro:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.text) {
+        setDescription(data.text);
+        setTitle(file.name);
+      }
+    } catch (error) {
+      console.error("Erro:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -32,16 +79,28 @@ export default function Dashboard() {
                 />
               </div>
               <button
-                onClick={handleConvert}
-                className="bg-yellow-400/90 hover:bg-yellow-400 text-black text-sm font-medium px-5 py-2 rounded-md transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(250,204,21,0.4)]"
+                onClick={handleConvertUrl}
+                disabled={loading}
+                className="bg-yellow-500 hover:bg-yellow-400 text-black text-sm font-medium px-5 py-2 rounded-md transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(250,204,21,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Converter
+                {loading ? "Processando..." : "Converter"}
               </button>
-              <button className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-3 py-2 rounded-md transition-all duration-300 hover:scale-105 flex items-center gap-1.5">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="audio/*,.ogg,.mp3,.wav,.m4a"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={loading}
+                className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-3 py-2 rounded-md transition-all duration-300 hover:scale-105 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4m14-7l-5-5m0 0L7 8m5-5v12" />
                 </svg>
-                <span className="text-sm text-zinc-300">Arquivo</span>
+                <span className="text-sm text-zinc-300"> Enviar Arquivo</span>
               </button>
             </div>
           </div>
@@ -57,9 +116,9 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             
-            <div className="md:col-span-2 bg-zinc-900/30 border border-zinc-800/50 rounded-md p-3">
+            <div className="md:col-span-3 bg-zinc-900/30 border border-zinc-800/50 rounded-md p-3">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-sm font-medium text-zinc-300">Descrição do Áudio</h3>
                 <button className="text-zinc-600 hover:text-zinc-400 transition-colors">
@@ -71,15 +130,15 @@ export default function Dashboard() {
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full h-80 bg-transparent border-none resize-none focus:outline-none text-sm text-zinc-500"
-                placeholder="A descrição aparecerá aqui..."
+                className="w-full h-80 bg-transparent border-none resize-none focus:outline-none text-base text-zinc-200 leading-relaxed"
+                placeholder="A transcrição aparecerá aqui..."
               />
               <div className="mt-2 flex justify-end gap-2">
                 <button className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-3 py-1.5 rounded-md transition-all duration-300 hover:scale-105 flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  Ticket de suporte
+                  Resumo Completo
                 </button>
                 <button className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-3 py-1.5 rounded-md transition-all duration-300 hover:scale-105 flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
