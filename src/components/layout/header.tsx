@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Header() {
   return (
-    <header className="w-full border-b border-zinc-800/40 bg-zinc-900 sticky top-0 z-30">
+    <header className="w-full bg-zinc-700 sticky top-0 z-30">
       <nav className="mx-auto flex max-w-9xl items-center justify-between px-4 py-3">
         <Link href="/" className="text-base font-extrabold text-yellow-400 hover:text-yellow-300 transition-all font-[family-name:var(--font-kufam)]">
           Audiodesc
