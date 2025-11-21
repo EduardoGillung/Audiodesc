@@ -15,16 +15,16 @@ export async function POST(req: NextRequest) {
         {
           role: "system",
           content:
-            "Você é um assistente de produtividade. Crie uma lista de tarefas (to-do list) objetiva e numerada com passos claros para resolver o problema ou atender a solicitação do cliente. Seja específico e prático.",
+            "Você é um assistente de produtividade. Crie uma lista ENXUTA de tarefas numeradas (máximo 5-7 itens). Cada tarefa deve ser uma ação clara e específica. Use verbos de ação no início. Seja direto e prático, sem explicações longas.",
         },
         {
           role: "user",
-          content: `Crie uma lista de tarefas passo a passo para:\n\n${text}`,
+          content: `Liste as tarefas principais para:\n\n${text}`,
         },
       ],
       model: "llama-3.3-70b-versatile",
-      temperature: 0.5,
-      max_tokens: 512,
+      temperature: 0.4,
+      max_tokens: 350,
     });
 
     return NextResponse.json({

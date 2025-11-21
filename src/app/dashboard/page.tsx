@@ -102,7 +102,7 @@ export default function Dashboard() {
           <div className="space-y-4">
           
           <div className="bg-zinc-900/30 p-6 rounded-md border border-zinc-800/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]">
-            <h2 className="text-base mb-2 text-yellow-400">Transcritor de Áudio para texto.</h2>
+            <h2 className="text-lg mb-2 text-yellow-400">Transcritor de Áudio para texto.</h2>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,7 +145,7 @@ export default function Dashboard() {
 
           <div className="flex items-end gap-2">
             <div className="flex-1">
-              <label className="block mb-2 text-xs text-zinc-300">Título:</label>
+              <label className="block mb-2 text-xs text-zinc-300 ">Título:</label>
               <input
                 type="text"
                 placeholder="Título da transcrição"
@@ -179,7 +179,7 @@ export default function Dashboard() {
               </div>
               <textarea
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                readOnly
                 className="w-full h-80 bg-zinc-800 p-4 rounded-md border-none resize-none focus:outline-none text-base text-zinc-200 leading-relaxed shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]"
                 placeholder="A transcrição aparecerá aqui..."
               />
@@ -257,16 +257,11 @@ export default function Dashboard() {
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="text-xs text-zinc-300">Resposta:</label>
-              <button className="text-zinc-600 hover:text-zinc-400 transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              </button>
             </div>
             <textarea
               value={response}
               onChange={(e) => setResponse(e.target.value)}
-              className="w-full min-h-64 bg-zinc-900/50 border border-zinc-800/50 rounded-md px-3 py-2 text-base text-zinc-200 leading-relaxed placeholder-zinc-600 focus:outline-none focus:border-zinc-700 focus:bg-zinc-900 resize-y shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]"
+              className="w-full min-h-64 bg-zinc-900/50 border border-zinc-800/50 rounded-md px-3 py-2 text-base text-zinc-200 leading-relaxed placeholder-zinc-600 focus:outline-none focus:border-zinc-700 focus:bg-zinc-900 resize-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]"
               placeholder="A resposta gerada aparecerá aqui..."
             />
           </div>

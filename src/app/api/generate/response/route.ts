@@ -15,16 +15,16 @@ export async function POST(req: NextRequest) {
         {
           role: "system",
           content:
-            "Você é um assistente de suporte técnico profissional. Crie uma resposta clara, educada e objetiva para o cliente baseada na mensagem recebida. A resposta deve ser em português e resolver o problema do cliente.",
+            "Você é um assistente de suporte técnico profissional. Analise a mensagem e crie uma resposta DIRETA e OBJETIVA em até 3 parágrafos curtos. Use linguagem clara e profissional. Vá direto ao ponto sem rodeios.",
         },
         {
           role: "user",
-          content: `Crie uma resposta profissional para esta mensagem:\n\n${text}`,
+          content: `Responda de forma objetiva e direta:\n\n${text}`,
         },
       ],
       model: "llama-3.3-70b-versatile",
-      temperature: 0.7,
-      max_tokens: 512,
+      temperature: 0.5,
+      max_tokens: 400,
     });
 
     return NextResponse.json({
