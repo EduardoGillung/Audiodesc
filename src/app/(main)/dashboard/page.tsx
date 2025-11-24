@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [response, setResponse] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [showResponsePanel, setShowResponsePanel] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { toast, showToast, hideToast } = useToast();
@@ -20,6 +21,7 @@ export default function Dashboard() {
       return;
     }
 
+    setShowResponsePanel(true);
     setIsStreaming(true);
     setResponse("");
 
@@ -164,83 +166,83 @@ export default function Dashboard() {
         <div className="max-w-9xl mx-auto">
           <div className="space-y-4">
           
-          <div className="">
-            <h2 className="text-lg mb-2 text-yellow-400 font-semibold">Transcritor de Áudio para mensagens de texto.</h2>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Cole o link URL do áudio aqui para converter."
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-800/50 rounded-md pl-9 pr-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 focus:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]"
-                />
-              </div>
-              <button
-                onClick={handleConvertUrl}
-                disabled={isTranscribing}
-                className="bg-yellow-500 hover:bg-yellow-400 text-black text-sm font-medium px-5 py-2 rounded-md transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(250,204,21,0.4)] disabled:opacity-50 disabled:cursor-not-allowed shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]"
-              >
-                {isTranscribing ? "Processando..." : "Converter"}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="audio/*,.ogg,.mp3,.wav,.m4a"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isTranscribing}
-                className="bg-zinc-800 border border-zinc-800/50 hover:bg-zinc-800/50 px-3 py-2 rounded-md transition-all duration-300 hover:scale-105 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4m14-7l-5-5m0 0L7 8m5-5v12" />
-                </svg>
-                <span className="text-sm text-zinc-300"> Enviar Arquivo</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-end gap-2">
-            <div className="flex-1">
-              <label className="block mb-2 text-sm font-medium text-zinc-300">Título:</label>
-              <input
-                type="text"
-                placeholder="Título da transcrição"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-800/50 rounded-md px-3 py-1.5 text-sm placeholder-zinc-600 focus:outline-none focus:border-zinc-700 focus:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]"
-              />
-            </div>
-            <button
-              onClick={() => {
-                setTitle("");
-                setDescription("");
-                setResponse("");
-              }}
-              className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-3 py-1.5 rounded-md transition-all duration-300 hover:scale-105 text-sm text-zinc-300 hover:text-white"
-            >
-              Limpar
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            
-            <div className="md:col-span-3 bg-zinc-900/30 border border-zinc-800 rounded-md p-4">
-              <div className="flex justify-center items-center mb-3 relative">
-                <h3 className="text-sm font-medium text-zinc-300">Descrição do Áudio</h3>
-                <button className="text-zinc-600 hover:text-zinc-400 transition-colors absolute right-0">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          <div className={`transition-all duration-500 ${showResponsePanel ? 'md:grid md:grid-cols-5 md:gap-3' : 'max-w-5xl mx-auto'}`}>
+            <div className={`transition-all duration-500 ${showResponsePanel ? 'md:col-span-3' : ''}`}>
+              <h2 className="text-base mb-1 text-yellow-400 font-semibold">Transcritor de Áudio para mensagens de texto.</h2>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
+                  <input
+                    type="text"
+                    placeholder="Cole o link URL do áudio aqui para converter."
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-800/50 rounded-md pl-9 pr-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 focus:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]"
+                  />
+                </div>
+                <button
+                  onClick={handleConvertUrl}
+                  disabled={isTranscribing}
+                  className="bg-yellow-500 hover:bg-yellow-400 text-black text-xs font-medium px-4 py-1.5 rounded-md transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(250,204,21,0.4)] disabled:opacity-50 disabled:cursor-not-allowed shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]"
+                >
+                  {isTranscribing ? "Processando..." : "Converter"}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="audio/*,.ogg,.mp3,.wav,.m4a"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isTranscribing}
+                  className="bg-zinc-800 border border-zinc-800/50 hover:bg-zinc-800/50 px-2.5 py-1.5 rounded-md transition-all duration-300 hover:scale-105 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4m14-7l-5-5m0 0L7 8m5-5v12" />
+                  </svg>
+                  <span className="text-xs text-zinc-300">Enviar Arquivo</span>
                 </button>
               </div>
-              <div className="relative w-full h-80 bg-zinc-800 p-4 rounded-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] overflow-y-auto">
+            </div>
+          </div>
+
+          <div className={`transition-all duration-500 ${showResponsePanel ? 'md:grid md:grid-cols-5 md:gap-3' : 'max-w-5xl mx-auto'}`}>
+            <div className={`bg-zinc-900/30 border border-zinc-800 rounded-md p-4 transition-all duration-500 ${showResponsePanel ? 'md:col-span-3' : ''}`}>
+              <div className="flex justify-center items-center mb-3 relative">
+                <h3 className="text-sm font-medium text-zinc-300">Descrição do Áudio</h3>
+                <div className="flex items-center gap-2 absolute right-0">
+                  <button
+                    onClick={() => {
+                      setTitle("");
+                      setDescription("");
+                      setResponse("");
+                    }}
+                    className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-2 py-1 rounded-md transition-all duration-300 hover:scale-105 text-xs text-zinc-300 hover:text-white"
+                  >
+                    Limpar
+                  </button>
+                  <button className="text-zinc-600 hover:text-zinc-400 transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div className="mb-3">
+                <label className="block mb-1 text-xs text-zinc-300">Título:</label>
+                <input
+                  type="text"
+                  placeholder="Título da transcrição"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-800/50 rounded-md px-3 py-1.5 text-sm placeholder-zinc-600 focus:outline-none focus:border-zinc-700 focus:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]"
+                />
+              </div>
+              <div className="relative w-full h-72 bg-zinc-800 p-4 rounded-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] overflow-y-auto">
                 <p className="text-base text-zinc-200 leading-relaxed whitespace-pre-wrap">
                   {description || "A transcrição aparecerá aqui..."}
                   {isTranscribing && <span className="inline-block w-0.5 h-5 bg-yellow-400 ml-0.5 animate-pulse"></span>}
@@ -281,17 +283,31 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="md:col-span-2 bg-zinc-900/30 border border-zinc-800/50 rounded-md p-3">
-              <div className="flex justify-center items-center mb-3">
-                <h3 className="text-sm font-medium text-zinc-300">Resposta</h3>
+            {showResponsePanel && (
+              <div className="md:col-span-2 bg-zinc-900/30 border border-zinc-800/50 rounded-md p-4 animate-slideInRight">
+                <div className="flex justify-center items-center mb-3 relative">
+                  <h3 className="text-sm font-medium text-zinc-300">Resposta</h3>
+                  <button
+                    onClick={() => {
+                      setShowResponsePanel(false);
+                      setResponse("");
+                    }}
+                    className="text-zinc-600 hover:text-zinc-400 transition-colors absolute right-0"
+                    title="Fechar painel"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="relative w-full h-[calc(100%-3rem)] bg-zinc-900/50 border border-zinc-800/50 rounded-md px-3 py-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] overflow-y-auto">
+                  <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap">
+                    {response || "A resposta gerada aparecerá aqui..."}
+                    {isStreaming && <span className="inline-block w-0.5 h-4 bg-yellow-400 ml-0.5 animate-pulse"></span>}
+                  </p>
+                </div>
               </div>
-              <div className="relative w-full h-80 bg-zinc-900/50 border border-zinc-800/50 rounded-md px-3 py-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] overflow-y-auto">
-                <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap">
-                  {response || "A resposta gerada aparecerá aqui..."}
-                  {isStreaming && <span className="inline-block w-0.5 h-4 bg-yellow-400 ml-0.5 animate-pulse"></span>}
-                </p>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-md p-3">
