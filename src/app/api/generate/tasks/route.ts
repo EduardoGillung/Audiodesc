@@ -1,16 +1,16 @@
 import { getGroqClient } from "@/lib/groq/client";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
     const { text } = await req.json();
 
     if (!text) {
-      return NextResponse.json({ error: "Text is required" }, { status: 400 });
+      return new Response(JSON.stringify({ error: "Text is required" }), { status: 400 });
     }
 
     const groq = getGroqClient();
-    const completion = await groq.chat.completions.create({
+    const stream = await groq.chat.completions.create({
       messages: [
         {
           role: "system",
@@ -25,16 +25,37 @@ export async function POST(req: NextRequest) {
       model: "llama-3.3-70b-versatile",
       temperature: 0.4,
       max_tokens: 350,
+      stream: true,
     });
 
-    return NextResponse.json({
-      tasks: completion.choices[0]?.message?.content || "",
+    const encoder = new TextEncoder();
+    const readable = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content || "";
+            if (content) {
+              const data = `data: ${JSON.stringify({ content })}\n\n`;
+              controller.enqueue(encoder.encode(data));
+            }
+          }
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        } catch (error) {
+          controller.error(error);
+        }
+      },
+    });
+
+    return new Response(readable, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+      },
     });
   } catch (error) {
     console.error("Tasks generation error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate tasks" },
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ error: "Failed to generate tasks" }), { status: 500 });
   }
 }
