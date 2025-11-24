@@ -160,7 +160,7 @@ export default function Dashboard() {
           onClose={hideToast}
         />
       )}
-      <div className="text-white px-4 py-6 bg-zinc-700">
+      <div className="text-white px-4 py-6 bg-zinc-700/80">
         <div className="max-w-9xl mx-auto">
           <div className="space-y-4">
           

@@ -37,9 +37,7 @@ export default function RootLayout({
         className={`${inconsolata.variable} ${kufam.variable} font-sans antialiased flex flex-col min-h-screen bg-gradient-to-b from-[#6F6F6F] to-[#141414]`}
         suppressHydrationWarning
       >
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        {children}
       </body>
     </html>
   );

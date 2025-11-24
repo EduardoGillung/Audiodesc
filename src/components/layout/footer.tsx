@@ -20,9 +20,6 @@ export default function Footer() {
               <li>
                 <Link href="/" className="text-zinc-400 hover:text-zinc-300 transition-colors">Início</Link>
               </li>
-              <li>
-                <Link href="/dashboard" className="text-zinc-400 hover:text-zinc-300 transition-colors">Perfil</Link>
-              </li>
             </ul>
           </div>
 
@@ -30,13 +27,13 @@ export default function Footer() {
             <h3 className="text-xs font-medium mb-3 text-zinc-400">Suporte</h3>
             <ul className="space-y-1.5 text-xs">
               <li>
-                <Link href="/contato" className="text-zinc-400 hover:text-zinc-300 transition-colors">Contato</Link>
+                <Link href="/contact" className="text-zinc-400 hover:text-zinc-300 transition-colors">Contato</Link>
               </li>
               <li>
-                <Link href="/privacidade" className="text-zinc-400 hover:text-zinc-300 transition-colors">Política de Privacidade</Link>
+                <Link href="/privacy" className="text-zinc-400 hover:text-zinc-300 transition-colors">Política de Privacidade</Link>
               </li>
               <li>
-                <Link href="/termos" className="text-zinc-400 hover:text-zinc-300 transition-colors">Termos de Uso</Link>
+                <Link href="/terms" className="text-zinc-400 hover:text-zinc-300 transition-colors">Termos de Uso</Link>
               </li>
             </ul>
           </div>
