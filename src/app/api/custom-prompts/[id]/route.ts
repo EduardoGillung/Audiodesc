@@ -3,23 +3,42 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const supabase = await createClient();
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Você precisa estar logado para editar prompts" },
+        { status: 401 }
+      );
     }
 
     const { title, prompt, icon, color } = await req.json();
 
     if (!title || !prompt) {
       return NextResponse.json(
-        { error: "Title and prompt are required" },
+        { error: "Título e prompt são obrigatórios" },
+        { status: 400 }
+      );
+    }
+
+    if (title.length > 30) {
+      return NextResponse.json(
+        { error: "Título deve ter no máximo 30 caracteres" },
+        { status: 400 }
+      );
+    }
+
+    if (prompt.length > 500) {
+      return NextResponse.json(
+        { error: "Prompt deve ter no máximo 500 caracteres" },
         { status: 400 }
       );
     }
@@ -38,13 +57,23 @@ export async function PUT(
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Database error updating prompt:", error);
+      throw error;
+    }
+
+    if (!data) {
+      return NextResponse.json(
+        { error: "Prompt não encontrado ou você não tem permissão" },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({ prompt: data });
   } catch (error) {
     console.error("Error updating prompt:", error);
     return NextResponse.json(
-      { error: "Failed to update prompt" },
+      { error: "Erro ao atualizar prompt" },
       { status: 500 }
     );
   }
@@ -52,16 +81,21 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const supabase = await createClient();
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Você precisa estar logado para deletar prompts" },
+        { status: 401 }
+      );
     }
 
     const { error } = await supabase
@@ -70,13 +104,16 @@ export async function DELETE(
       .eq("id", params.id)
       .eq("user_id", user.id);
 
-    if (error) throw error;
+    if (error) {
+      console.error("Database error deleting prompt:", error);
+      throw error;
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting prompt:", error);
     return NextResponse.json(
-      { error: "Failed to delete prompt" },
+      { error: "Erro ao deletar prompt" },
       { status: 500 }
     );
   }

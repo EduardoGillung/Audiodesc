@@ -132,7 +132,6 @@ export default function Dashboard() {
                 setResponse(accumulatedText);
               }
             } catch (e) {
-              // Ignora linhas inválidas
             }
           }
         }
@@ -147,22 +146,49 @@ export default function Dashboard() {
   };
 
   const handleCreatePrompt = async (promptTitle: string, promptText: string) => {
-    await createPrompt(promptTitle, promptText);
-    showToast("Prompt criado com sucesso!", "success");
+    try {
+      await createPrompt(promptTitle, promptText);
+      showToast("Prompt criado com sucesso!", "success");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Erro ao criar prompt";
+      if (errorMessage.includes("Unauthorized") || errorMessage.includes("401")) {
+        showToast("Você precisa estar logado para criar prompts", "error");
+      } else {
+        showToast(errorMessage, "error");
+      }
+    }
   };
 
   const handleUpdatePrompt = async (promptTitle: string, promptText: string) => {
     if (editingPrompt) {
-      await updatePrompt(editingPrompt.id, promptTitle, promptText);
-      showToast("Prompt atualizado com sucesso!", "success");
-      setEditingPrompt(null);
+      try {
+        await updatePrompt(editingPrompt.id, promptTitle, promptText);
+        showToast("Prompt atualizado com sucesso!", "success");
+        setEditingPrompt(null);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Erro ao atualizar prompt";
+        if (errorMessage.includes("Unauthorized") || errorMessage.includes("401")) {
+          showToast("Você precisa estar logado para editar prompts", "error");
+        } else {
+          showToast(errorMessage, "error");
+        }
+      }
     }
   };
 
   const handleDeletePrompt = async (id: string) => {
     if (confirm("Tem certeza que deseja deletar este prompt?")) {
-      await deletePrompt(id);
-      showToast("Prompt deletado com sucesso!", "success");
+      try {
+        await deletePrompt(id);
+        showToast("Prompt deletado com sucesso!", "success");
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Erro ao deletar prompt";
+        if (errorMessage.includes("Unauthorized") || errorMessage.includes("401")) {
+          showToast("Você precisa estar logado para deletar prompts", "error");
+        } else {
+          showToast(errorMessage, "error");
+        }
+      }
     }
   };
 
@@ -246,7 +272,7 @@ export default function Dashboard() {
           onClose={hideToast}
         />
       )}
-      <div className="text-white px-4 py-6 bg-gray-700/80">
+      <div className="text-white px-4 py-6 bg-zinc-800/80">
         <div className="max-w-9xl mx-auto">
           <div className="space-y-4">
           
