@@ -5,7 +5,7 @@ export default async function Header() {
   const user = await getUser();
 
   return (
-    <header className="w-full sticky top-0 z-30 backdrop-blur-md bg-zinc-700/80 border-b border-zinc-600/20">
+    <header className="w-full sticky top-0 z-30 backdrop-blur-md bg-gray-700/80 border-b border-zinc-600/20">
       <nav className="mx-auto flex max-w-9xl items-center justify-between px-4 py-3">
         <Link href="/" className="text-base font-extrabold text-yellow-400 hover:text-yellow-300 transition-all font-[family-name:var(--font-kufam)]">
           Audiodesc

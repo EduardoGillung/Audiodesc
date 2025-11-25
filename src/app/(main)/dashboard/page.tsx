@@ -2,6 +2,8 @@
 import { useState, useRef } from "react";
 import Toast from "@/components/ui/Toast";
 import { useToast } from "@/hooks/useToast";
+import { useCustomPrompts } from "@/hooks/useCustomPrompts";
+import PromptModal from "@/components/ui/PromptModal";
 
 export default function Dashboard() {
   const [url, setUrl] = useState("");
@@ -11,9 +13,12 @@ export default function Dashboard() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [showResponsePanel, setShowResponsePanel] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPrompt, setEditingPrompt] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { toast, showToast, hideToast } = useToast();
+  const { prompts, createPrompt, updatePrompt, deletePrompt } = useCustomPrompts();
 
   const streamResponse = async (endpoint: string, successMessage: string) => {
     if (!description) {
@@ -81,6 +86,85 @@ export default function Dashboard() {
   const handleGenerateResponse = () => streamResponse("/api/generate/response", "Resposta gerada com sucesso!");
   const handleGenerateTasks = () => streamResponse("/api/generate/tasks", "Lista de tarefas gerada!");
   const handleGenerateSummary = () => streamResponse("/api/generate/summary", "Resumo gerado com sucesso!");
+
+  const handleCustomPrompt = async (promptText: string) => {
+    if (!description) {
+      showToast("Nenhuma transcrição para processar", "error");
+      return;
+    }
+
+    setShowResponsePanel(true);
+    setIsStreaming(true);
+    setResponse("");
+
+    try {
+      const res = await fetch("/api/generate/custom", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: description, prompt: promptText }),
+      });
+
+      if (!res.ok) throw new Error("Erro na requisição");
+
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) throw new Error("Stream não disponível");
+
+      let accumulatedText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+            if (data === "[DONE]") continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                accumulatedText += parsed.content;
+                setResponse(accumulatedText);
+              }
+            } catch (e) {
+              // Ignora linhas inválidas
+            }
+          }
+        }
+      }
+
+      showToast("Resposta gerada com sucesso!", "success");
+    } catch (error) {
+      showToast("Erro ao gerar resposta", "error");
+    } finally {
+      setIsStreaming(false);
+    }
+  };
+
+  const handleCreatePrompt = async (promptTitle: string, promptText: string) => {
+    await createPrompt(promptTitle, promptText);
+    showToast("Prompt criado com sucesso!", "success");
+  };
+
+  const handleUpdatePrompt = async (promptTitle: string, promptText: string) => {
+    if (editingPrompt) {
+      await updatePrompt(editingPrompt.id, promptTitle, promptText);
+      showToast("Prompt atualizado com sucesso!", "success");
+      setEditingPrompt(null);
+    }
+  };
+
+  const handleDeletePrompt = async (id: string) => {
+    if (confirm("Tem certeza que deseja deletar este prompt?")) {
+      await deletePrompt(id);
+      showToast("Prompt deletado com sucesso!", "success");
+    }
+  };
 
   const streamTranscription = async (text: string) => {
     setDescription("");
@@ -162,7 +246,7 @@ export default function Dashboard() {
           onClose={hideToast}
         />
       )}
-      <div className="text-white px-4 py-6 bg-zinc-700/80">
+      <div className="text-white px-4 py-6 bg-gray-700/80">
         <div className="max-w-9xl mx-auto">
           <div className="space-y-4">
           
@@ -248,7 +332,7 @@ export default function Dashboard() {
                   {isTranscribing && <span className="inline-block w-0.5 h-5 bg-yellow-400 ml-0.5 animate-pulse"></span>}
                 </p>
               </div>
-              <div className="mt-2 flex justify-end gap-2">
+              <div className="mt-2 flex justify-end gap-2 flex-wrap">
                 <button
                   onClick={handleGenerateSummary}
                   disabled={isStreaming || !description}
@@ -279,6 +363,58 @@ export default function Dashboard() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01" />
                   </svg>
                   {isStreaming ? "Gerando..." : "Resposta"}
+                </button>
+
+                {prompts.map((prompt) => (
+                  <div key={prompt.id} className="relative group">
+                    <button
+                      onClick={() => handleCustomPrompt(prompt.prompt)}
+                      disabled={isStreaming || !description}
+                      className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-3 py-1.5 rounded-md transition-all duration-300 hover:scale-105 flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                      </svg>
+                      {isStreaming ? "Gerando..." : prompt.title}
+                    </button>
+                    
+                    <div className="absolute -top-2 -right-2 hidden group-hover:flex gap-1 z-10">
+                      <button
+                        onClick={() => {
+                          setEditingPrompt(prompt);
+                          setIsModalOpen(true);
+                        }}
+                        className="bg-blue-500 hover:bg-blue-600 text-white p-1 rounded-full transition-colors shadow-lg"
+                        title="Editar"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeletePrompt(prompt.id)}
+                        className="bg-red-500 hover:bg-red-600 text-white p-1 rounded-full transition-colors shadow-lg"
+                        title="Deletar"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  onClick={() => {
+                    setEditingPrompt(null);
+                    setIsModalOpen(true);
+                  }}
+                  className="bg-yellow-500/20 border border-yellow-500/50 hover:bg-yellow-500/30 px-3 py-1.5 rounded-md transition-all duration-300 hover:scale-105 flex items-center gap-1.5 text-xs text-yellow-400 hover:text-yellow-300"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Criar Prompt
                 </button>
               </div>
             </div>
@@ -347,6 +483,18 @@ export default function Dashboard() {
         </div>
       </div>
       </div>
+
+      <PromptModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingPrompt(null);
+        }}
+        onSave={editingPrompt ? handleUpdatePrompt : handleCreatePrompt}
+        initialTitle={editingPrompt?.title || ""}
+        initialPrompt={editingPrompt?.prompt || ""}
+        mode={editingPrompt ? "edit" : "create"}
+      />
     </>
   );
 }
