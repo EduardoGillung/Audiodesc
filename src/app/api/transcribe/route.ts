@@ -22,19 +22,23 @@ export async function POST(req: NextRequest) {
       language: "pt",
     });
 
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // Tenta salvar no histórico, mas não falha se der erro
+    try {
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (user) {
-      await supabase.from("transcriptions").insert({
-        user_id: user.id,
-        title: file.name,
-        audio_url: `file://${file.name}`,
-        transcription_text: transcription.text,
-        status: "completed",
-      });
+      if (user) {
+        await supabase.from("transcription_history").insert({
+          user_id: user.id,
+          title: file.name,
+          transcription_text: transcription.text,
+        });
+      }
+    } catch (dbError) {
+      // Ignora erros do banco de dados para não bloquear a transcrição
+      console.warn("Failed to save transcription to history:", dbError);
     }
 
     return NextResponse.json({

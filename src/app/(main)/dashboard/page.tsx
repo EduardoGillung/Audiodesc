@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import Toast from "@/components/ui/Toast";
 import { useToast } from "@/hooks/useToast";
 import { useCustomPrompts } from "@/hooks/useCustomPrompts";
+import { useHistory } from "@/hooks/useHistory";
 import PromptModal from "@/components/ui/PromptModal";
 
 export default function Dashboard() {
@@ -18,6 +19,7 @@ export default function Dashboard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { toast, showToast, hideToast } = useToast();
+  const { history, deleteHistoryItem, refreshHistory } = useHistory();
   const { prompts, createPrompt, updatePrompt, deletePrompt } = useCustomPrompts();
 
   const streamResponse = async (endpoint: string, successMessage: string) => {
@@ -224,6 +226,7 @@ export default function Dashboard() {
         setTitle("Transcrição de URL");
         await streamTranscription(data.text);
         showToast("Áudio transcrito com sucesso!", "success");
+        refreshHistory(); // Atualiza o histórico
       } else {
         showToast(data.error || "Erro ao transcrever áudio", "error");
         setIsTranscribing(false);
@@ -253,6 +256,7 @@ export default function Dashboard() {
         setTitle(file.name);
         await streamTranscription(data.text);
         showToast("Arquivo transcrito com sucesso!", "success");
+        refreshHistory(); // Atualiza o histórico
       } else {
         showToast(data.error || "Erro ao transcrever arquivo", "error");
         setIsTranscribing(false);
@@ -321,41 +325,37 @@ export default function Dashboard() {
           </div>
 
           <div className={`transition-all duration-500 ${showResponsePanel ? 'md:grid md:grid-cols-5 md:gap-3' : 'max-w-5xl mx-auto'}`}>
-            <div className={`bg-zinc-900/30 border border-zinc-800 rounded-md p-4 transition-all duration-500 ${showResponsePanel ? 'md:col-span-3' : ''}`}>
+            <div className={`bg-zinc-900/30 border border-zinc-800/50 rounded-md p-4 transition-all duration-500 ${showResponsePanel ? 'md:col-span-3' : ''}`}>
               <div className="flex justify-center items-center mb-3 relative">
                 <h3 className="text-sm font-medium text-zinc-300">Descrição do Áudio</h3>
-                <div className="flex items-center gap-2 absolute right-0">
+              </div>
+              <div className="mb-3">
+                <label className="block mb-1 text-xs text-zinc-300">Título:</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Título da transcrição"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="flex-1 bg-zinc-900/50 border border-zinc-800/50 rounded-md px-3 py-1.5 text-sm placeholder-zinc-500 focus:outline-none focus:border-zinc-700 focus:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]"
+                  />
                   <button
                     onClick={() => {
                       setTitle("");
                       setDescription("");
-                      setResponse("");
                     }}
-                    className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-2 py-1 rounded-md transition-all duration-300 hover:scale-105 text-xs text-zinc-300 hover:text-white"
+                    className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-3 py-1.5 rounded-md transition-all duration-300 hover:scale-105 text-xs text-zinc-300 hover:text-white flex items-center gap-1"
+                    title="Limpar título e descrição"
                   >
+
                     Limpar
-                  </button>
-                  <button className="text-zinc-600 hover:text-zinc-400 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
                   </button>
                 </div>
               </div>
-              <div className="mb-3">
-                <label className="block mb-1 text-xs text-zinc-300">Título:</label>
-                <input
-                  type="text"
-                  placeholder="Título da transcrição"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-800/50 rounded-md px-3 py-1.5 text-sm placeholder-zinc-600 focus:outline-none focus:border-zinc-700 focus:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]"
-                />
-              </div>
-              <div className="relative w-full h-72 bg-zinc-800 p-4 rounded-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] overflow-y-auto">
-                <p className="text-base text-zinc-200 leading-relaxed whitespace-pre-wrap">
+              <div className="relative w-full h-72 bg-zinc-900/50 border border-zinc-800/50 rounded-md px-3 py-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] overflow-y-auto">
+                <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap">
                   {description || "A transcrição aparecerá aqui..."}
-                  {isTranscribing && <span className="inline-block w-0.5 h-5 bg-yellow-400 ml-0.5 animate-pulse"></span>}
+                  {isTranscribing && <span className="inline-block w-0.5 h-4 bg-yellow-400 ml-0.5 animate-pulse"></span>}
                 </p>
               </div>
               <div className="mt-2 flex justify-end gap-2 flex-wrap">
@@ -448,17 +448,34 @@ export default function Dashboard() {
             {showResponsePanel && (
               <div className="md:col-span-2 bg-zinc-900/30 border border-zinc-800/50 rounded-md p-4 animate-slideInRight">
                 <div className="flex justify-center items-center mb-3 relative">
+                  <button
+                    onClick={() => {
+                      if (response) {
+                        navigator.clipboard.writeText(response);
+                        showToast("Resposta copiada com sucesso!", "success");
+                      } else {
+                        showToast("Nenhuma resposta para copiar", "error");
+                      }
+                    }}
+                    disabled={!response}
+                    className="absolute left-0 w-6 h-6 rounded-full bg-zinc-800/50 border border-zinc-700/40 hover:bg-zinc-700/50 hover:border-zinc-600/60 flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    title="Copiar resposta"
+                  >
+                    <svg className="w-3 h-3 text-zinc-400 group-hover:text-zinc-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
                   <h3 className="text-sm font-medium text-zinc-300">Resposta</h3>
                   <button
                     onClick={() => {
                       setShowResponsePanel(false);
                       setResponse("");
                     }}
-                    className="text-zinc-600 hover:text-zinc-400 transition-colors absolute right-0"
+                    className="absolute right-0 w-6 h-6 rounded-full bg-red-500/10 border border-red-500/40 hover:bg-red-500/20 hover:border-red-500/60 flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] group"
                     title="Fechar painel"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg className="w-3 h-3 text-red-400 group-hover:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
@@ -475,35 +492,63 @@ export default function Dashboard() {
           <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-md p-3">
             <div className="flex justify-center items-center mb-3 relative">
               <h3 className="text-sm font-medium text-zinc-300">Histórico</h3>
-              <button className="text-zinc-600 hover:text-zinc-400 transition-all duration-300 hover:scale-110 absolute right-0">
+              <button 
+                onClick={refreshHistory}
+                className="text-zinc-600 hover:text-zinc-400 transition-all duration-300 hover:scale-110 absolute right-0"
+                title="Atualizar histórico"
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
-              <button className="flex items-center gap-2 p-2 rounded-md bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 hover:border-zinc-700 transition-all duration-300 hover:scale-[1.02]">
-                <div className="w-8 h-8 bg-zinc-800/50 rounded-full flex items-center justify-center">
-                  <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                  </svg>
+              {history.length === 0 ? (
+                <div className="col-span-full text-center py-8 text-zinc-500 text-sm">
+                  Nenhuma transcrição no histórico
                 </div>
-                <div className="flex-1 text-left">
-                  <div className="h-2 bg-zinc-700/50 rounded w-3/4"></div>
-                  <div className="h-1.5 bg-zinc-800/50 rounded w-1/2 mt-1"></div>
-                </div>
-              </button>
-              <button className="flex items-center gap-2 p-2 rounded-md bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 hover:border-zinc-700 transition-all duration-300 hover:scale-[1.02]">
-                <div className="w-8 h-8 bg-zinc-800/50 rounded-full flex items-center justify-center">
-                  <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                  </svg>
-                </div>
-                <div className="flex-1 text-left">
-                  <div className="h-2 bg-zinc-700/50 rounded w-2/3"></div>
-                  <div className="h-1.5 bg-zinc-800/50 rounded w-1/3 mt-1"></div>
-                </div>
-              </button>
+              ) : (
+                history.map((item) => (
+                  <div key={item.id} className="relative group">
+                    <button 
+                      onClick={() => {
+                        setTitle(item.title);
+                        setDescription(item.transcription_text);
+                        showToast("Transcrição carregada do histórico", "success");
+                      }}
+                      className="w-full flex items-center gap-2 p-2 rounded-md bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 hover:border-zinc-700 transition-all duration-300 hover:scale-[1.02]"
+                    >
+                      <div className="w-8 h-8 bg-zinc-800/50 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 text-left min-w-0">
+                        <div className="text-xs text-zinc-300 truncate font-medium">{item.title}</div>
+                        <div className="text-xs text-zinc-500 truncate">{new Date(item.created_at).toLocaleDateString('pt-BR')}</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (confirm("Tem certeza que deseja deletar este item do histórico?")) {
+                          try {
+                            await deleteHistoryItem(item.id);
+                            showToast("Item removido do histórico", "success");
+                          } catch (error) {
+                            showToast("Erro ao remover item", "error");
+                          }
+                        }
+                      }}
+                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500/10 border border-red-500/40 hover:bg-red-500/20 hover:border-red-500/60 items-center justify-center transition-all duration-300 hover:scale-110 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] hidden group-hover:flex"
+                      title="Deletar"
+                    >
+                      <svg className="w-2.5 h-2.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

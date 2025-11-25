@@ -33,18 +33,20 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Proteger rotas do dashboard
-  if (request.nextUrl.pathname.startsWith("/dashboard") && !user) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+  // Rotas públicas que não precisam de autenticação
+  const publicRoutes = ["/", "/dashboard", "/privacy", "/terms", "/contact"];
+  const isPublicRoute = publicRoutes.some((route) =>
+    request.nextUrl.pathname === route || request.nextUrl.pathname.startsWith(route)
+  );
+
+  // Se for rota de auth e usuário já está logado, redireciona para dashboard
+  if (request.nextUrl.pathname.startsWith("/auth") && user) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // Redirecionar usuários autenticados das páginas de auth
-  if (
-    (request.nextUrl.pathname.startsWith("/auth/login") ||
-      request.nextUrl.pathname.startsWith("/auth/signup")) &&
-    user
-  ) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  // Permite acesso a rotas públicas sem autenticação
+  if (isPublicRoute) {
+    return response;
   }
 
   return response;

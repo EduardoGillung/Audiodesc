@@ -2,55 +2,29 @@ import { getGroqClient } from "@/lib/groq/client";
 import { createClient } from "@/lib/database/server";
 import { NextRequest, NextResponse } from "next/server";
 
-async function extractAudioUrl(url: string): Promise<string> {
-  // Se já é um link direto de áudio, retorna
-  const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.flac', '.aac', '.webm'];
-  if (audioExtensions.some(ext => url.toLowerCase().includes(ext))) {
-    return url;
-  }
+function getFileExtensionFromUrl(url: string): string {
+  const urlLower = url.toLowerCase();
+  if (urlLower.includes('.mp3')) return 'mp3';
+  if (urlLower.includes('.wav')) return 'wav';
+  if (urlLower.includes('.ogg')) return 'ogg';
+  if (urlLower.includes('.m4a')) return 'm4a';
+  if (urlLower.includes('.flac')) return 'flac';
+  if (urlLower.includes('.aac')) return 'aac';
+  if (urlLower.includes('.webm')) return 'webm';
+  return 'mp3'; // default
+}
 
-  // Tenta buscar a página e extrair o link do áudio
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch page');
-    }
-
-    const html = await response.text();
-    
-    // Padrões para extrair URLs de áudio
-    const patterns = [
-      // Pixabay pattern
-      /"url":"(https:\/\/[^"]*\.mp3[^"]*)"/,
-      // Pattern genérico para tags audio
-      /<audio[^>]*src="([^"]+)"/i,
-      // Pattern para source dentro de audio
-      /<source[^>]*src="([^"]+)"/i,
-      // Pattern para data-src
-      /data-src="([^"]*\.(mp3|wav|ogg|m4a)[^"]*)"/i,
-      // Pattern para URLs diretas no HTML
-      /(https?:\/\/[^\s"'<>]+\.(mp3|wav|ogg|m4a|flac|aac))/i
-    ];
-
-    for (const pattern of patterns) {
-      const match = html.match(pattern);
-      if (match && match[1]) {
-        // Decodifica caracteres escapados
-        let audioUrl = match[1].replace(/\\/g, '');
-        return audioUrl;
-      }
-    }
-
-    throw new Error('No audio URL found in page');
-  } catch (error) {
-    console.error('Error extracting audio URL:', error);
-    throw error;
-  }
+function getContentTypeFromExtension(extension: string): string {
+  const types: Record<string, string> = {
+    'mp3': 'audio/mpeg',
+    'wav': 'audio/wav',
+    'ogg': 'audio/ogg',
+    'm4a': 'audio/mp4',
+    'flac': 'audio/flac',
+    'aac': 'audio/aac',
+    'webm': 'audio/webm'
+  };
+  return types[extension] || 'audio/mpeg';
 }
 
 export async function POST(req: NextRequest) {
@@ -58,45 +32,78 @@ export async function POST(req: NextRequest) {
     const { url } = await req.json();
 
     if (!url) {
-      return NextResponse.json({ error: "URL é obrigatória" }, { status: 400 });
-    }
-
-    // Extrai a URL real do áudio
-    let audioUrl: string;
-    try {
-      audioUrl = await extractAudioUrl(url);
-      console.log('Audio URL extracted:', audioUrl);
-    } catch (error) {
       return NextResponse.json(
-        { error: "Não foi possível encontrar o áudio nesta URL. Use um link direto para arquivo de áudio." },
+        { error: "URL é obrigatória" },
         { status: 400 }
       );
     }
 
-    // Baixa o áudio
-    const audioResponse = await fetch(audioUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
+    console.log('Attempting to transcribe URL:', url);
+
+    // Detecta a extensão do arquivo
+    const extension = getFileExtensionFromUrl(url);
+    const contentType = getContentTypeFromExtension(extension);
+
+    console.log('Detected extension:', extension, 'Content-Type:', contentType);
+
+    // Baixa o áudio com timeout e headers apropriados
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 segundos timeout
+
+    let audioResponse;
+    try {
+      audioResponse = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'audio/*,*/*',
+        },
+        signal: controller.signal,
+      });
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      console.error('Fetch error:', fetchError);
+      return NextResponse.json(
+        { error: "Não foi possível acessar a URL. Verifique se o link está correto e acessível." },
+        { status: 400 }
+      );
+    }
+
+    clearTimeout(timeoutId);
 
     if (!audioResponse.ok) {
+      console.error('Audio response not OK:', audioResponse.status, audioResponse.statusText);
       return NextResponse.json(
-        { error: "Falha ao baixar o áudio da URL" },
+        { error: `Falha ao baixar o áudio: ${audioResponse.status} ${audioResponse.statusText}` },
         { status: 400 }
       );
     }
 
-    const contentType = audioResponse.headers.get('content-type') || 'audio/mpeg';
-    const blob = await audioResponse.blob();
+    // Verifica o tamanho do arquivo (limite de 25MB para Groq)
+    const contentLength = audioResponse.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > 25 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: "Arquivo muito grande. O limite é 25MB." },
+        { status: 400 }
+      );
+    }
+
+    console.log('Downloading audio...');
+    const arrayBuffer = await audioResponse.arrayBuffer();
+    const blob = new Blob([arrayBuffer], { type: contentType });
     
-    // Determina a extensão baseada no content-type
-    let extension = 'mp3';
-    if (contentType.includes('wav')) extension = 'wav';
-    else if (contentType.includes('ogg')) extension = 'ogg';
-    else if (contentType.includes('m4a') || contentType.includes('mp4')) extension = 'm4a';
-    
+    console.log('Audio downloaded, size:', blob.size, 'bytes');
+
+    if (blob.size === 0) {
+      return NextResponse.json(
+        { error: "O arquivo de áudio está vazio." },
+        { status: 400 }
+      );
+    }
+
+    // Cria o arquivo para o Groq
     const file = new File([blob], `audio.${extension}`, { type: contentType });
+
+    console.log('Sending to Groq for transcription...');
 
     // Transcreve com Groq
     const groq = getGroqClient();
@@ -107,20 +114,24 @@ export async function POST(req: NextRequest) {
       language: "pt",
     });
 
-    // Salva no banco se usuário estiver logado
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    console.log('Transcription successful');
 
-    if (user) {
-      await supabase.from("transcriptions").insert({
-        user_id: user.id,
-        title: "Transcrição de URL",
-        audio_url: url,
-        transcription_text: transcription.text,
-        status: "completed",
-      });
+    // Tenta salvar no histórico, mas não falha se der erro
+    try {
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        await supabase.from("transcription_history").insert({
+          user_id: user.id,
+          title: "Transcrição de URL",
+          transcription_text: transcription.text,
+        });
+      }
+    } catch (dbError) {
+      console.warn("Failed to save transcription to history:", dbError);
     }
 
     return NextResponse.json({
@@ -128,7 +139,19 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("URL transcription error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Falha ao transcrever áudio da URL";
+    
+    let errorMessage = "Falha ao transcrever áudio da URL";
+    
+    if (error instanceof Error) {
+      if (error.message.includes('abort')) {
+        errorMessage = "Tempo limite excedido ao baixar o áudio";
+      } else if (error.message.includes('network')) {
+        errorMessage = "Erro de rede ao acessar a URL";
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     return NextResponse.json(
       { error: errorMessage },
       { status: 500 }
