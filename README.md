@@ -1,294 +1,188 @@
 # AudioDesc
 
-![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-38bdf8?style=flat-square&logo=tailwindcss)
+Plataforma web para transcrição de áudio em texto com processamento inteligente via IA.
 
-Plataforma de conversão de áudio para texto.
-
-## 📋 Índice
-
-- [Sobre o Projeto](#sobre-o-projeto)
-- [Tecnologias](#tecnologias)
-- [Arquitetura](#arquitetura)
-- [Estrutura do Projeto](#estrutura-do-projeto)
-- [Instalação](#instalação)
-- [Uso](#uso)
-- [Funcionalidades](#funcionalidades)
-- [Design System](#design-system)
-- [Contribuindo](#contribuindo)
-
-## 🎯 Sobre o Projeto
-
-AudioDesc é uma aplicação web desenvolvida para converter áudio em texto de forma automática, oferecendo recursos adicionais como geração de resumos, criação de tickets de suporte e listagem de tarefas baseadas no conteúdo transcrito.
-
-### Objetivos
-
-- Fornecer transcrição de áudio de alta qualidade
-- Interface minimalista e intuitiva
-- Experiência de usuário fluida e responsiva
-- Arquitetura escalável e manutenível
-
-## 🚀 Tecnologias
-
-### Core
+## Tecnologias
 
 - **Next.js 15** - Framework React com App Router
-- **React 19** - Biblioteca para construção de interfaces
-- **TypeScript** - Superset JavaScript com tipagem estática
-- **TailwindCSS 4** - Framework CSS utility-first
+- **TypeScript** - Tipagem estática
+- **Tailwind CSS** - Estilização
+- **Supabase** - Backend e autenticação
+- **PostgreSQL** - Banco de dados
+- **Groq API** - Transcrição de áudio (Whisper)
 
-### Backend & Database
+## Funcionalidades
 
-- **Supabase** - Backend as a Service (BaaS)
-- **PostgreSQL** - Banco de dados relacional
-- **Supabase Auth** - Sistema de autenticação
-- **Row Level Security** - Segurança em nível de linha
+### Transcrição
 
-### Fontes
+- Upload de arquivos de áudio (MP3, WAV, OGG, M4A)
+- Transcrição via URL direta
+- Suporte a múltiplos formatos
+- Streaming de resultados em tempo real
 
-- **Inconsolata** - Fonte principal do projeto
-- **Kufam** - Fonte para branding (logo e títulos)
+### Processamento IA
 
-### Ferramentas
+- Geração de resumos
+- Extração de tarefas
+- Respostas contextuais
+- Prompts customizáveis pelo usuário
 
-- **ESLint** - Linter para código JavaScript/TypeScript
-- **Git** - Controle de versão
+### Gerenciamento
 
-## 🏗️ Arquitetura
+- Sistema de autenticação (Supabase Auth)
+- Histórico de transcrições
+- Prompts personalizados (CRUD completo)
+- Interface responsiva
 
-### Padrões Arquiteturais
-
-O projeto segue uma arquitetura baseada em componentes com separação clara de responsabilidades:
-
-```
-┌─────────────────────────────────────┐
-│         Camada de Apresentação      │
-│    (Pages, Components, Layouts)     │
-└─────────────────────────────────────┘
-                  │
-┌─────────────────────────────────────┐
-│         Camada de Lógica            │
-│      (Hooks, Utils, Services)       │
-└─────────────────────────────────────┘
-                  │
-┌─────────────────────────────────────┐
-│         Camada de Dados             │
-│        (API, State Management)      │
-└─────────────────────────────────────┘
-```
-
-### Princípios de Design
-
-- **Component-Driven Development**: Componentes reutilizáveis e isolados
-- **Mobile-First**: Design responsivo priorizando dispositivos móveis
-- **Atomic Design**: Organização hierárquica de componentes
-- **DRY (Don't Repeat Yourself)**: Evitar duplicação de código
-
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
-audiodesc/
-├── src/
-│   ├── app/                      # App Router do Next.js
-│   │   ├── dashboard/           # Página principal do dashboard
-│   │   │   └── page.tsx
-│   │   ├── history/             # Página de histórico
-│   │   │   └── page.tsx
-│   │   ├── globals.css          # Estilos globais
-│   │   ├── layout.tsx           # Layout raiz da aplicação
-│   │   └── page.tsx             # Página inicial (redireciona)
-│   │
-│   └── components/              # Componentes reutilizáveis
-│       ├── layout/              # Componentes de layout
-│       │   ├── header.tsx       # Cabeçalho da aplicação
-│       │   └── footer.tsx       # Rodapé da aplicação
-│       └── ui/                  # Componentes de UI (futuro)
-│
-├── public/                      # Arquivos estáticos
-├── .gitignore                   # Arquivos ignorados pelo Git
-├── eslint.config.mjs           # Configuração do ESLint
-├── next.config.ts              # Configuração do Next.js
-├── package.json                # Dependências e scripts
-├── postcss.config.mjs          # Configuração do PostCSS
-├── tsconfig.json               # Configuração do TypeScript
-└── README.md                   # Documentação do projeto
+src/
+├── app/
+│   ├── (main)/              # Rotas principais
+│   │   ├── dashboard/       # Dashboard principal
+│   │   ├── privacy/         # Política de privacidade
+│   │   ├── terms/           # Termos de uso
+│   │   └── contact/         # Contato
+│   ├── auth/                # Autenticação
+│   │   ├── login/           # Login
+│   │   └── signup/          # Cadastro
+│   └── api/                 # API Routes
+│       ├── transcribe/      # Transcrição de áudio
+│       ├── generate/        # Geração de conteúdo IA
+│       ├── custom-prompts/  # Gerenciamento de prompts
+│       └── history/         # Histórico de transcrições
+├── components/
+│   ├── layout/              # Header, Footer
+│   └── ui/                  # Componentes reutilizáveis
+├── hooks/                   # Custom hooks
+├── lib/                     # Utilitários e configurações
+└── middleware.ts            # Middleware de autenticação
 ```
 
-### Descrição dos Diretórios
-
-#### `/src/app`
-
-Contém as rotas e páginas da aplicação usando o App Router do Next.js 15.
-
-- **dashboard/**: Página principal com conversor de áudio
-- **history/**: Histórico de conversões
-- **layout.tsx**: Layout global com Header e Footer
-- **globals.css**: Estilos CSS globais e variáveis
-
-#### `/src/components`
-
-Componentes React reutilizáveis organizados por categoria.
-
-- **layout/**: Componentes estruturais (Header, Footer)
-- **ui/**: Componentes de interface (botões, inputs, etc.)
-
-## ⚙️ Instalação
+## Instalação
 
 ### Pré-requisitos
 
 - Node.js 18+
-- npm, yarn, pnpm ou bun
+- Conta Supabase
+- API Key do Groq
 
-### Passos
+### Configuração
 
-1. Clone o repositório
+1. Clone o repositório:
 
 ```bash
 git clone https://github.com/EduardoGillung/Audiodesc.git
 cd audiodesc
 ```
 
-2. Instale as dependências
+2. Instale as dependências:
 
 ```bash
 npm install
-# ou
-yarn install
-# ou
-pnpm install
 ```
 
-3. Execute o servidor de desenvolvimento
+3. Configure as variáveis de ambiente (`.env.local`):
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=sua_url_supabase
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_chave_supabase
+GROQ_API_KEY=sua_chave_groq
+```
+
+4. Execute as migrations do banco de dados:
+
+- Execute os scripts SQL em `DATABASE_SETUP.md`
+- Execute os scripts SQL em `DATABASE_CUSTOM_PROMPTS.md`
+- Execute os scripts SQL em `DATABASE_HISTORY.md`
+
+5. Inicie o servidor de desenvolvimento:
 
 ```bash
 npm run dev
-# ou
-yarn dev
-# ou
-pnpm dev
 ```
 
-4. Abra [http://localhost:3000](http://localhost:3000) no navegador
+Acesse: `http://localhost:3000`
 
-## 💻 Uso
-
-### Desenvolvimento
+## Comandos
 
 ```bash
-npm run dev      # Inicia servidor de desenvolvimento
-npm run build    # Cria build de produção
-npm run start    # Inicia servidor de produção
-npm run lint     # Executa linter
+npm run dev      # Desenvolvimento
+npm run build    # Build de produção
+npm run start    # Servidor de produção
+npm run lint     # Linter
 ```
 
-### Estrutura de Rotas
+## Banco de Dados
 
-- `/` - Redireciona para `/dashboard`
-- `/dashboard` - Página principal do conversor
-- `/history` - Histórico de conversões
+### Tabelas
 
-## ✨ Funcionalidades
+**transcription_history**
 
-### Implementadas
+- Armazena histórico de transcrições do usuário
+- Campos: id, user_id, title, transcription_text, created_at
 
-- ✅ Conversão de áudio via URL
-- ✅ Upload de arquivo de áudio
-- ✅ Visualização de descrição do áudio
-- ✅ Histórico de conversões
-- ✅ Interface responsiva
-- ✅ Dark mode nativo
-- ✅ Botões de ação (Criar Resposta, Ticket, Tarefas)
+**custom_prompts**
 
-### Em Desenvolvimento
+- Prompts personalizados do usuário
+- Campos: id, user_id, title, prompt, icon, color, order_index
 
-- 🔄 Integração com API de transcrição
-- 🔄 Sistema de autenticação
-- 🔄 Salvamento de histórico no banco de dados
-- 🔄 Exportação de transcrições
-- 🔄 Suporte a múltiplos idiomas
+### Segurança
 
-## 🎨 Design System
+- Row Level Security (RLS) habilitado
+- Políticas de acesso por usuário
+- Autenticação obrigatória para recursos protegidos
 
-### Paleta de Cores
+## API Routes
 
-```css
---background: #0a0a0a (black)
---foreground: #ededed (white)
---primary: #facc15 (yellow-400)
---secondary: #27272a (zinc-800)
---accent: #18181b (zinc-900)
-```
+### Transcrição
 
-### Tipografia
+- `POST /api/transcribe` - Upload de arquivo
+- `POST /api/transcribe/url` - Transcrição via URL
 
-- **Fonte Principal**: Inconsolata (400, 500, 600, 700)
-- **Fonte Branding**: Kufam (400, 500, 600, 700)
+### Geração IA
 
-### Componentes
+- `POST /api/generate/summary` - Gerar resumo
+- `POST /api/generate/tasks` - Extrair tarefas
+- `POST /api/generate/response` - Gerar resposta
+- `POST /api/generate/custom` - Prompt customizado
 
-#### Botões
+### Prompts
 
-```tsx
-// Botão Primário
-<button className="bg-yellow-400/90 hover:bg-yellow-400 text-black text-sm font-medium px-5 py-2 rounded-md transition-all">
-  Texto
-</button>
+- `GET /api/custom-prompts` - Listar prompts
+- `POST /api/custom-prompts` - Criar prompt
+- `PUT /api/custom-prompts/[id]` - Editar prompt
+- `DELETE /api/custom-prompts/[id]` - Deletar prompt
 
-// Botão Secundário
-<button className="bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-800/50 px-3 py-2 rounded-md transition-all">
-  Texto
-</button>
-```
+### Histórico
 
-#### Inputs
+- `GET /api/history` - Listar histórico
+- `DELETE /api/history/[id]` - Deletar item
 
-```tsx
-<input className="bg-zinc-900/50 border border-zinc-800/50 rounded-md px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 focus:bg-zinc-900" />
-```
+## Arquitetura
 
-### Espaçamento
+### Padrões
 
-- **Gap padrão**: 2-4 (0.5rem - 1rem)
-- **Padding**: 3-4 (0.75rem - 1rem)
-- **Margin**: 2-4 (0.5rem - 1rem)
+- Component-driven development
+- Separation of concerns
+- Custom hooks para lógica reutilizável
+- API Routes para backend
+- Server-Sent Events (SSE) para streaming
 
-### Responsividade
+### Segurança
 
-- **Mobile**: < 768px
-- **Tablet**: 768px - 1024px
-- **Desktop**: > 1024px
+- Autenticação via Supabase Auth
+- RLS no PostgreSQL
+- Validação de dados no backend
+- Proteção de rotas via middleware
 
-## 🤝 Contribuindo
+## Autor
 
-Contribuições são bem-vindas! Siga os passos:
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
-4. Push para a branch (`git push origin feature/MinhaFeature`)
-5. Abra um Pull Request
-
-### Padrões de Código
-
-- Use TypeScript para type safety
-- Siga as convenções do ESLint
-- Componentes em PascalCase
-- Funções e variáveis em camelCase
-- Use Tailwind para estilização
-- Mantenha componentes pequenos e focados
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT.
-
-## 👤 Autor
-
-**Eduardo Gillung**
+Eduardo Gillung
 
 - GitHub: [@EduardoGillung](https://github.com/EduardoGillung)
-- Repositório: [Audiodesc](https://github.com/EduardoGillung/Audiodesc)
 
----
+## Licença
 
-Desenvolvido com ❤️ usando Next.js e TailwindCSS
+MIT
