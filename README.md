@@ -1,6 +1,8 @@
 # AudioDesc
 
-Plataforma web para transcrição de áudio em texto com processamento inteligente via IA.
+Audiodesc é uma solução web moderna projetada para converter arquivos de áudio e URL's em texto com precisão e, subsequentemente, processar essa transcrição usando Groq com llama Turbo 3.0 para gerar insights acionáveis e criar prompt personalizaveis para uso diário.
+
+Desenvolvida com o objetivo de otimizar fluxos de trabalho em ambientes como Suporte Técnico e atendimento ao cliente, a plataforma permite transformar gravações de chamadas, reuniões e outros áudios em resumos, tarefas e respostas contextuais, reduzindo o tempo de análise e agilizando a documentação.
 
 ## Tecnologias
 
