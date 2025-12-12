@@ -7,20 +7,20 @@ const groq = new Groq({
 
 export async function POST(req: NextRequest) {
   try {
-    const { text } = await req.json();
+    const { text, prompt } = await req.json();
 
-    if (!text) {
-      return new Response(JSON.stringify({ error: "Text is required" }), {
-        status: 400,
-      });
+    if (!text || !prompt) {
+      return new Response(
+        JSON.stringify({ error: "Text and prompt are required" }),
+        { status: 400 }
+      );
     }
 
     const stream = await groq.chat.completions.create({
       messages: [
         {
           role: "system",
-          content:
-            "Você é um assistente especializado em extrair tarefas e ações de textos. Analise o texto fornecido e crie uma lista de tarefas claras e objetivas. Formate como uma lista numerada ou com marcadores.",
+          content: prompt,
         },
         {
           role: "user",
@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
         },
       ],
       model: "llama-3.3-70b-versatile",
-      temperature: 0.5,
-      max_tokens: 1024,
+      temperature: 0.7,
+      max_tokens: 2048,
       stream: true,
     });
 
@@ -60,9 +60,9 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error generating tasks:", error);
+    console.error("Error generating custom response:", error);
     return new Response(
-      JSON.stringify({ error: "Failed to generate tasks" }),
+      JSON.stringify({ error: "Failed to generate response" }),
       { status: 500 }
     );
   }
