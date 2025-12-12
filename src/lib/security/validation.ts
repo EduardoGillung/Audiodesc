@@ -148,8 +148,14 @@ export class SecurityValidator {
 // Rate limiting simples em memória (para produção, use Redis)
 class RateLimiter {
   private static requests = new Map<string, { count: number; resetTime: number }>();
+  private static cleanupInterval: NodeJS.Timeout | null = null;
 
   static checkLimit(identifier: string, maxRequests: number = 10, windowMs: number = 60000): boolean {
+    // Inicializar cleanup apenas uma vez
+    if (!this.cleanupInterval && typeof setInterval !== 'undefined') {
+      this.cleanupInterval = setInterval(() => this.cleanup(), 5 * 60 * 1000);
+    }
+
     const now = Date.now();
     const userRequests = this.requests.get(identifier);
 
@@ -175,8 +181,5 @@ class RateLimiter {
     }
   }
 }
-
-// Limpar rate limiter a cada 5 minutos
-setInterval(() => RateLimiter.cleanup(), 5 * 60 * 1000);
 
 export { RateLimiter };

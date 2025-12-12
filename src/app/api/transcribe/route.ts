@@ -49,27 +49,18 @@ export async function POST(req: NextRequest) {
         data: { user },
       } = await supabase.auth.getUser();
 
-<<<<<<< HEAD
-    if (user) {
-      await supabase.from("transcriptions").insert({
-        user_id: user.id,
-        title: SecurityValidator.sanitizeText(file.name),
-        audio_url: `file://${SecurityValidator.sanitizeText(file.name)}`,
-        transcription_text: SecurityValidator.sanitizeText(transcription.text),
-        status: "completed",
-      });
-=======
       if (user) {
-        await supabase.from("transcription_history").insert({
+        await supabase.from("transcriptions").insert({
           user_id: user.id,
-          title: file.name,
-          transcription_text: transcription.text,
+          title: SecurityValidator.sanitizeText(file.name),
+          audio_url: `file://${SecurityValidator.sanitizeText(file.name)}`,
+          transcription_text: SecurityValidator.sanitizeText(transcription.text),
+          status: "completed",
         });
       }
     } catch (dbError) {
       // Ignora erros do banco de dados para não bloquear a transcrição
       console.warn("Failed to save transcription to history:", dbError);
->>>>>>> 00b36c4ce966d442ff31247db1480f88bdedf35a
     }
 
     return NextResponse.json({
