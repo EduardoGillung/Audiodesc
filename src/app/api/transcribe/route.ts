@@ -1,15 +1,35 @@
 import { getGroqClient } from "@/lib/groq/client";
 import { createClient } from "@/lib/database/server";
+import { SecurityValidator, RateLimiter } from "@/lib/security/validation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting
+    const clientIP = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    if (!RateLimiter.checkLimit(`transcribe-${clientIP}`, 10, 60000)) {
+      return NextResponse.json(
+        { error: "Muitas requisições. Tente novamente em 1 minuto." },
+        { status: 429 }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
     if (!file) {
       return NextResponse.json(
-        { error: "Audio file is required" },
+        { error: "Arquivo de áudio é obrigatório" },
+        { status: 400 }
+      );
+    }
+
+    // Validar arquivo de áudio
+    const fileValidation = SecurityValidator.validateAudioFile(file);
+    if (!fileValidation.isValid) {
+      console.warn(`Tentativa de upload de arquivo inválido: ${file.name} - ${fileValidation.error}`);
+      return NextResponse.json(
+        { error: fileValidation.error },
         { status: 400 }
       );
     }
@@ -30,9 +50,9 @@ export async function POST(req: NextRequest) {
     if (user) {
       await supabase.from("transcriptions").insert({
         user_id: user.id,
-        title: file.name,
-        audio_url: `file://${file.name}`,
-        transcription_text: transcription.text,
+        title: SecurityValidator.sanitizeText(file.name),
+        audio_url: `file://${SecurityValidator.sanitizeText(file.name)}`,
+        transcription_text: SecurityValidator.sanitizeText(transcription.text),
         status: "completed",
       });
     }
@@ -40,10 +60,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       text: transcription.text,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Transcription error:", error);
+    
+    // Log de segurança
+    const clientIP = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    console.warn(`Erro na transcrição para IP ${clientIP}:`, error.message);
+
     return NextResponse.json(
-      { error: "Failed to transcribe audio" },
+      { error: "Falha ao transcrever áudio" },
       { status: 500 }
     );
   }

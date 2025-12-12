@@ -6,17 +6,6 @@
 
 Plataforma de conversão de áudio para texto.
 
-## 📋 Índice
-
-- [Sobre o Projeto](#sobre-o-projeto)
-- [Tecnologias](#tecnologias)
-- [Arquitetura](#arquitetura)
-- [Estrutura do Projeto](#estrutura-do-projeto)
-- [Instalação](#instalação)
-- [Uso](#uso)
-- [Funcionalidades](#funcionalidades)
-- [Design System](#design-system)
-- [Contribuindo](#contribuindo)
 
 ## 🎯 Sobre o Projeto
 
